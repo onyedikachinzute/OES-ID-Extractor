@@ -35,6 +35,7 @@ import os
 import sys
 import traceback
 from pathlib import Path
+from download_model import ensure_model_exists
 
 #
 # Ensure the application always runs with the project root
@@ -85,5 +86,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-
+    ensure_model_exists()
     sys.exit(main())
