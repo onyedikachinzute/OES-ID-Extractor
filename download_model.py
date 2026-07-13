@@ -26,7 +26,7 @@ def ensure_model_exists():
         # Center the popup on the screen
         root.eval('tk::PlaceWindow . center')
 
-        label = tk.Label(root, text="Downloading background removal model...\nThis happens only on the first launch.", padding=10)
+        label = tk.Label(root, text="Downloading background removal model...\nThis happens only on the first launch.", padx=10, pady=10)
         label.pack()
 
         progress = ttk.Progressbar(root, orient="horizontal", length=280, mode="determinate")
