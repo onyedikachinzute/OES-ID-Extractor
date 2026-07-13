@@ -1,0 +1,64 @@
+OES-ID-Extractor/
+
+│
+├── app.py
+├── main.py
+├── config.py
+│
+├── gui/
+│   ├── main_window.py
+│   ├── settings.py
+│   ├── progress.py
+│   └── widgets.py
+│
+├── core/
+│   ├──/models
+│   │   └── document.py
+│   ├── processor.py
+│   ├── pipeline.py
+│   ├── queue_manager.py
+│   ├── detector.py
+│   ├── cropper.py
+│   ├── enhancer.py
+│   ├── remover.py
+│   ├── namer.py
+│   ├── analyzer.py
+│   └── exporter.py
+│
+├── pdf/
+│   ├── reader.py
+│   ├── renderer.py
+│   └── text_detector.py
+│
+├── vision/
+│   ├── photo_detector.py
+│   ├── signature_detector.py
+│   ├── yolo_model.py
+│   ├── contour_detector.py
+│   └── preprocessing.py
+│
+├── ocr/
+│   ├── tesseract.py
+│   ├── parser.py
+│   └── cleaner.py
+│
+├── utils/
+│   ├── logger.py
+│   ├── config.py
+│   ├── image.py
+│   ├── file.py
+│   └── threads.py
+│
+├── models/
+│   ├── rembg.onnx
+│   ├── yolo.pt
+│   ├── haarcascade.xml
+│   └── detection.py
+│
+├── output/
+│   ├── Photos/
+│   └── Signatures/
+│
+├── temp/
+│
+└── assets/

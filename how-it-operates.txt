@@ -1,0 +1,213 @@
+Processing Pipeline
+Step 1
+
+Load file
+
+Supported
+
+PDF
+JPG
+PNG
+TIFF
+BMP
+JPEG
+Step 2
+
+
+
+Determine file type.
+
+Is PDF?
+
+      YES
+
+      │
+
+Extract page image
+
+      │
+
+No?
+
+Already image
+
+Step 3
+
+Determine PDF Type
+
+This is important.
+
+There are two kinds.
+
+Type A
+
+Digital PDF
+
+Contains text layer.
+
+Use OCR only where needed.
+Type B
+
+Scanned PDF
+
+Looks like image.
+
+Treat entire page as image.
+
+Detection
+
+page.get_text()
+
+If empty
+
+↓
+
+Scanned PDF
+
+Else
+
+↓
+
+Digital PDF
+Step 4
+
+Locate
+
+Need three things.
+
+Photo
+Signature
+Name
+Photo Detection
+
+Use
+
+YOLO
+
+or
+
+Largest portrait rectangle
+
+or
+
+Face detector
+
+Find face
+
+Expand bounding box
+
+Crop nicely
+Signature Detection
+
+Usually
+
+Dark thin strokes
+
+Wide aspect ratio
+
+Lower section
+
+Can detect by
+
+Contours
+
+Morphology
+
+Adaptive Threshold
+
+Name Detection
+
+OCR
+
+Find keywords
+
+NAME
+
+EMPLOYEE NAME
+
+STAFF NAME
+
+
+Then read adjacent text.
+
+Example
+
+Name
+
+Onyedikachi Nzute
+
+Store
+
+Onyedikachi Nzute
+Step 5
+
+Crop
+
+Save
+
+photo.png
+
+signature.png
+Step 6
+
+Background Removal
+
+Use
+
+rembg
+
+input
+
+↓
+
+transparent png
+Step 7
+
+Enhancement
+
+Photo
+
+CLAHE
+
+↓
+
+Sharpen
+
+↓
+
+Noise Removal
+
+↓
+
+Upscale (optional)
+
+Signature
+
+Threshold
+
+↓
+
+Clean
+
+↓
+
+Transparent
+Step 8
+
+Output Naming
+
+Example
+
+Onyedikachi Nzute.png
+
+Photo
+
+Photos/
+
+Onyedikachi Nzute.png
+
+Signature
+
+Signatures/
+
+Onyedikachi Nzute.png

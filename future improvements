@@ -1,0 +1,23 @@
+Future Improvements
+
+Once version 1 works, version 2 could include:
+
+Batch drag-and-drop support.
+Automatic rotation of skewed scans before processing.
+Duplicate detection to avoid saving the same employee twice.
+OCR confidence scoring with a review queue for uncertain names.
+Optional export to CSV containing employee name, source file, and output paths.
+A small preview window showing the detected photo and signature before saving.
+GPU acceleration (CUDA) for much faster processing on supported machines.
+Training a custom YOLO model specifically on OES ID cards, making detection far more reliable than generic contour-based methods.
+Development Roadmap
+
+I'd build this in the following phases to keep the project maintainable:
+
+Project setup: Create the folder structure, configuration system, logging, and GUI shell.
+File ingestion: Support PDFs and common image formats, including batch processing.
+Document analysis: Distinguish digital PDFs from scanned documents and normalize inputs.
+Detection engine: Locate the employee photo, signature, and name using OpenCV/OCR (with a path to upgrade to YOLO later).
+Extraction pipeline: Crop detected regions, remove backgrounds, enhance images, and save with the correct filenames.
+Automation: Add multithreading, progress tracking, cancellation, and directory monitoring.
+Packaging: Build a standalone Windows executable with all required offline models bundled.

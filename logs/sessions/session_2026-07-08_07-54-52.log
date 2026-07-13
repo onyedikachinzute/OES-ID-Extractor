@@ -1,0 +1,15 @@
+[07:54:52] [ERROR   ] [__main__] Fatal error during application startup.
+Traceback (most recent call last):
+  File "C:\Users\onyed\Kachi\Python Projects\OES ID Extractor\main.py", line 68, in main
+    from app import App
+  File "C:\Users\onyed\Kachi\Python Projects\OES ID Extractor\app.py", line 31, in <module>
+    from gui.main_window import MainWindow
+  File "C:\Users\onyed\Kachi\Python Projects\OES ID Extractor\gui\main_window.py", line 35, in <module>
+    from core.processor import Processor
+  File "C:\Users\onyed\Kachi\Python Projects\OES ID Extractor\core\processor.py", line 25, in <module>
+    from core.analyzer import DocumentAnalyzer
+  File "C:\Users\onyed\Kachi\Python Projects\OES ID Extractor\core\analyzer.py", line 30, in <module>
+    import fitz
+  File "C:\Users\onyed\Kachi\Python Projects\OES ID Extractor\.venv\lib\site-packages\fitz\__init__.py", line 1, in <module>
+    from frontend import *
+ModuleNotFoundError: No module named 'frontend'

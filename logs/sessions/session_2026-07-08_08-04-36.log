@@ -1,0 +1,40 @@
+[08:04:39] [INFO    ] [__main__] Launching OES ID Card PDF to Req Doc Extractor.
+[08:04:39] [INFO    ] [gui.main_window] Application started.
+[08:04:46] [INFO    ] [gui.main_window] Added 1 file(s) via file dialog.
+[08:04:47] [WARNING ] [vision.yolo_model] YOLO model not found at 'models\yolo.pt'. Photo detection will fall back to the contour-based heuristic until a trained yolo.pt is placed in the models folder.
+[08:04:47] [WARNING ] [core.remover] Background removal model not found at 'models\u2net.onnx'. Background removal will be SKIPPED (cropped images will be exported as-is) until 'u2net.onnx' is placed in the models folder. See README for the download link.
+[08:04:47] [WARNING ] [ocr.tesseract] Tesseract binary not found on PATH. Set 'tesseract_cmd' in settings.json to point at tesseract.exe for fully offline OCR.
+[08:04:47] [INFO    ] [utils.threads] Background processing thread started (1 document(s)).
+[08:04:47] [INFO    ] [gui.main_window] Started processing 1 document(s).
+[08:04:47] [INFO    ] [core.processor] Starting processing of 1 document(s).
+[08:04:47] [INFO    ] [core.processor] Processing (1/1): COLLINS OGUNYEMI.pdf
+[08:04:47] [INFO    ] [core.analyzer] Analyzing COLLINS OGUNYEMI.pdf
+[08:04:47] [INFO    ] [core.analyzer] PDF (COLLINS OGUNYEMI.pdf) | pages=1 | scanned=True
+[08:04:47] [INFO    ] [core.pipeline] Running processing pipeline for 'COLLINS OGUNYEMI.pdf'.
+[08:04:47] [INFO    ] [core.detector] Detecting objects in 'COLLINS OGUNYEMI.pdf'.
+[08:04:47] [INFO    ] [pdf.reader] Opened PDF 'COLLINS OGUNYEMI.pdf' (1 page(s)).
+[08:04:47] [INFO    ] [pdf.renderer] Rendered 1 page(s) from 'COLLINS OGUNYEMI.pdf'.
+[08:04:47] [INFO    ] [pdf.reader] Closed PDF document.
+[08:04:47] [INFO    ] [vision.photo_detector] Detecting personnel photo.
+[08:04:47] [WARNING ] [vision.photo_detector] No YOLO photo detection available; trying contour-based fallback.
+[08:04:47] [WARNING ] [vision.photo_detector] No personnel photo detected.
+[08:04:47] [INFO    ] [vision.signature_detector] Detecting signature.
+[08:04:47] [INFO    ] [vision.signature_detector] Signature detected at (719, 932, 445, 114).
+[08:04:47] [INFO    ] [core.detector] Detection complete for 'COLLINS OGUNYEMI.pdf'.
+[08:04:47] [INFO    ] [core.cropper] Cropping 'COLLINS OGUNYEMI.pdf'.
+[08:04:47] [WARNING ] [core.cropper] No personnel photo detected.
+[08:04:47] [INFO    ] [core.remover] Removing backgrounds from 'COLLINS OGUNYEMI.pdf'.
+[08:04:47] [WARNING ] [core.remover] No photo available for background removal.
+[08:04:47] [INFO    ] [core.enhancer] Enhancing 'COLLINS OGUNYEMI.pdf'.
+[08:04:48] [INFO    ] [core.namer] Extracting personnel name from 'COLLINS OGUNYEMI.pdf'.
+[08:04:48] [ERROR   ] [ocr.tesseract] Tesseract is not installed or not on PATH. OCR cannot run.
+[08:04:48] [WARNING ] [core.namer] OCR could not determine a name. Using filename 'COLLINS OGUNYEMI'.
+[08:04:48] [INFO    ] [core.namer] Final filename: COLLINS OGUNYEMI
+[08:04:48] [INFO    ] [core.exporter] Exporting 'COLLINS OGUNYEMI.pdf'.
+[08:04:48] [WARNING ] [core.exporter] No personnel photo to export.
+[08:04:48] [INFO    ] [core.exporter] Saved COLLINS OGUNYEMI.png
+[08:04:48] [INFO    ] [core.pipeline] Finished processing 'COLLINS OGUNYEMI.pdf'.
+[08:04:48] [INFO    ] [core.processor] Processing completed.
+[08:04:48] [INFO    ] [utils.threads] Background processing thread finished.
+[08:04:48] [INFO    ] [gui.main_window] Batch processing finished.
+[08:04:55] [INFO    ] [app] Application closing.

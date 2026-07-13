@@ -1,0 +1,38 @@
+{
+    "photo_output_dir": "output/Photos",
+    "signature_output_dir": "output/Signatures",
+    "temp_dir": "temp",
+    "log_dir": "logs",
+    "models_dir": "models",
+    "tesseract_cmd": "",
+    "supported_extensions": [
+        ".pdf",
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".bmp",
+        ".tif",
+        ".tiff"
+    ],
+    "image": {
+        "dpi": 300,
+        "photo_padding": 20,
+        "signature_padding": 10,
+        "sharpen": true,
+        "clahe": true,
+        "denoise": true,
+        "upscale_small_crops": true
+    },
+    "ocr": {
+        "enabled": true,
+        "language": "eng"
+    },
+    "background_removal": {
+        "enabled": true
+    },
+    "gui": {
+        "theme": "dark",
+        "window_width": 1200,
+        "window_height": 700
+    }
+}
