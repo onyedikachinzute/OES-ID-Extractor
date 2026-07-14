@@ -13,22 +13,17 @@ application form, or scanned document.
 
 Responsibilities
 ----------------
-- Preprocess the image
-- Run YOLO inference (when a trained yolo.pt is available)
-- Fall back to a classical rectangle-detection heuristic
-  when no YOLO model has been supplied yet
-- Filter personnel photo detections
-- Select the best detection
-- Return a bounding box, always in the ORIGINAL image's
-  coordinate space
+• Preprocess the image
+• Run YOLO inference
+• Filter personnel photo detections
+• Select the highest-confidence detection
+• Return a bounding box in the original image coordinates
 
 This module performs no cropping.
 ===========================================================
 """
 
 from __future__ import annotations
-
-import cv2
 import numpy as np
 
 from config import config
@@ -53,21 +48,9 @@ class PhotoDetector:
     #
     PHOTO_CLASSES = {
         "photo",
-        "person",
-        "portrait",
-        "face",
     }
 
-    #
-    # Fallback heuristic bounds - a personnel photo is
-    # typically portrait/near-square and occupies a modest
-    # fraction of the full page.
-    #
-    FALLBACK_MIN_ASPECT_RATIO = 0.55
-    FALLBACK_MAX_ASPECT_RATIO = 1.3
-    FALLBACK_MIN_AREA_RATIO = 0.01
-    FALLBACK_MAX_AREA_RATIO = 0.30
-    FALLBACK_MIN_SOLIDITY = 0.5
+    MIN_CONFIDENCE = config.yolo_confidence
 
     def __init__(self):
 
@@ -110,50 +93,38 @@ class PhotoDetector:
 
         photos = self._filter_photo_detections(detections)
 
-        if photos:
+        if not photos:
 
-            #
-            # Highest confidence first.
-            #
-            photos.sort(
-                key=lambda d: (d.confidence, d.area),
-                reverse=True,
-            )
-
-            best = photos[0]
-
-            logger.info(
-                "Personnel photo detected via YOLO "
-                "(confidence %.2f).",
-                best.confidence,
-            )
-
-            return self._rescale_bbox(
-                best.bbox,
-                proc_width,
-                proc_height,
-                original_width,
-                original_height,
-            )
-
-        logger.warning(
-            "No YOLO photo detection available; "
-            "trying contour-based fallback."
-        )
-
-        fallback_bbox = self._fallback_detect(image)
-
-        if fallback_bbox is None:
-
-            logger.warning("No personnel photo detected.")
+            logger.warning("No personnel photo detected by YOLO.")
 
             return None
 
+        best = max(
+            photos,
+            key=lambda d: d.confidence,
+        )
+        
+        if best.confidence < self.MIN_CONFIDENCE:
+            
+            logger.warning(
+                "Photo confidence %.2f below threshold %.2f; ignoring.",
+                best.confidence,
+            )
+            
+            return None
+
         logger.info(
-            "Personnel photo detected via contour fallback."
+            "Personnel photo detected via YOLO (confidence %.2f).",
+            best.confidence,
         )
 
-        return fallback_bbox
+        return self._rescale_bbox(
+            best.bbox,
+            proc_width,
+            proc_height,
+            original_width,
+            original_height,
+        )
 
     # --------------------------------------------------
     # Internal - YOLO
@@ -202,137 +173,3 @@ class PhotoDetector:
             int(h * scale_y),
         )
 
-    # --------------------------------------------------
-    # Internal - Contour Fallback
-    # --------------------------------------------------
-
-    def _fallback_detect(
-        self,
-        image: np.ndarray,
-    ) -> tuple[int, int, int, int] | None:
-        """
-        Classical rectangle-detection heuristic used only
-        when no trained YOLO model is available.
-
-        Rather than relying on Canny edges (which need a
-        continuous, high-contrast outline and are easily
-        broken by a faint/partial photo border), this looks
-        for a SOLID block of non-white content:
-
-          1. Threshold everything darker than near-white as
-             foreground.
-          2. "Open" with a stroke-sized kernel - this erodes
-             away thin handwriting/text strokes entirely
-             while a photograph (which is densely filled
-             throughout) survives.
-          3. "Close" to fill in small internal gaps/
-             highlights within the photo (skin tones, white
-             shirt collars, etc.) so it forms one solid blob.
-          4. Keep only blobs that are photo-shaped (aspect
-             ratio, size) AND solid (their contour area
-             nearly fills their bounding box - text lines
-             and stray marks do not).
-        """
-
-        height, width = image.shape[:2]
-
-        page_area = float(height * width)
-
-        gray = self.preprocessor.grayscale(image)
-
-        #
-        # Foreground = anything meaningfully darker than a
-        # near-white page background.
-        #
-        _, mask = cv2.threshold(
-            gray,
-            235,
-            255,
-            cv2.THRESH_BINARY_INV,
-        )
-
-        #
-        # Kernel sizes scale with image resolution so this
-        # behaves consistently whether pages are rendered at
-        # 150 DPI or 300+ DPI.
-        #
-        stroke_kernel_size = max(5, width // 250)
-
-        open_kernel = cv2.getStructuringElement(
-            cv2.MORPH_RECT,
-            (stroke_kernel_size, stroke_kernel_size),
-        )
-
-        opened = cv2.morphologyEx(
-            mask,
-            cv2.MORPH_OPEN,
-            open_kernel,
-            iterations=1,
-        )
-
-        close_kernel_size = max(15, width // 90)
-
-        close_kernel = cv2.getStructuringElement(
-            cv2.MORPH_RECT,
-            (close_kernel_size, close_kernel_size),
-        )
-
-        closed = cv2.morphologyEx(
-            opened,
-            cv2.MORPH_CLOSE,
-            close_kernel,
-            iterations=2,
-        )
-
-        contours, _ = cv2.findContours(
-            closed,
-            cv2.RETR_EXTERNAL,
-            cv2.CHAIN_APPROX_SIMPLE,
-        )
-
-        best_score = 0.0
-        best_bbox = None
-
-        for contour in contours:
-
-            area = cv2.contourArea(contour)
-            area_ratio = area / page_area
-
-            if not (
-                self.FALLBACK_MIN_AREA_RATIO
-                <= area_ratio
-                <= self.FALLBACK_MAX_AREA_RATIO
-            ):
-                continue
-
-            x, y, w, h = cv2.boundingRect(contour)
-
-            if h == 0:
-                continue
-
-            aspect_ratio = w / h
-
-            if not (
-                self.FALLBACK_MIN_ASPECT_RATIO
-                <= aspect_ratio
-                <= self.FALLBACK_MAX_ASPECT_RATIO
-            ):
-                continue
-
-            #
-            # Solidity: how much of the bounding box the
-            # blob actually fills. A photo fills it almost
-            # entirely; leftover text/noise blobs do not.
-            #
-            solidity = area / float(w * h)
-
-            if solidity < self.FALLBACK_MIN_SOLIDITY:
-                continue
-
-            score = area * solidity
-
-            if score > best_score:
-                best_score = score
-                best_bbox = (x, y, w, h)
-
-        return best_bbox

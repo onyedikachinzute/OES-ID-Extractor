@@ -36,41 +36,27 @@ from models.detection import Detection
 from vision.contour_detector import ContourDetector
 from vision.preprocessing import ImagePreprocessor
 from utils.logger import get_logger
+from vision.yolo_model import YOLOModel
 
 logger = get_logger(__name__)
 
 
 class SignatureDetector:
     """
-    Detects handwritten signatures using contour heuristics.
+    Detects handwritten signatures.
     """
+
+    SIGNATURE_CLASSES = {
+        "signature",
+    }
+
+    MIN_CONFIDENCE = 0.50
 
     def __init__(self):
 
         self.preprocessor = ImagePreprocessor()
 
-        self.contour_detector = ContourDetector()
-
-        self.min_aspect_ratio = getattr(
-            config,
-            "signature_min_aspect_ratio",
-            2.0,
-        )
-
-        self.max_aspect_ratio = getattr(
-            config,
-            "signature_max_aspect_ratio",
-            12.0,
-        )
-
-        #
-        # Ignore candidates in the extreme top/bottom of the
-        # page - these are almost always scanner artifacts
-        # (bed edges, staple/hole-punch marks, dust), not a
-        # signature field.
-        #
-        self.top_margin_ratio = 0.05
-        self.bottom_margin_ratio = 0.02
+        self.model = YOLOModel()
 
     # --------------------------------------------------
     # Public API
@@ -96,105 +82,89 @@ class SignatureDetector:
 
         logger.info("Detecting signature.")
 
-        binary = self._binarize(image)
+        original_height, original_width = image.shape[:2]
 
-        candidates = self.contour_detector.detect(binary)
+        processed = self.preprocessor.prepare(image)
 
-        candidates = self.contour_detector.filter_by_aspect_ratio(
-            candidates,
-            self.min_aspect_ratio,
-            self.max_aspect_ratio,
-        )
+        proc_height, proc_width = processed.shape[:2]
 
-        candidates = self.contour_detector.filter_by_area(candidates)
+        detections = self.model.predict(processed)
 
-        if not candidates:
-            logger.warning("No signature detected.")
+        signatures = self._filter_signature_detections(detections)
+
+        if not signatures:
+
+            logger.warning("No signature detected by YOLO.")
+
             return None
 
-        best = self._select_best(candidates, image.shape[0])
+        best = max(
+            signatures,
+            key=lambda d: d.confidence,
+        )
 
-        logger.info("Signature detected at %s.", best.bbox)
+        if best.confidence < self.MIN_CONFIDENCE:
 
-        return best.bbox
+            logger.warning(
+                "Signature confidence %.2f below threshold %.2f.",
+                best.confidence,
+                self.MIN_CONFIDENCE,
+            )
+
+            return None
+
+        logger.info(
+            "Signature detected via YOLO (confidence %.2f).",
+            best.confidence,
+        )
+
+        return self._rescale_bbox(
+            best.bbox,
+            proc_width,
+            proc_height,
+            original_width,
+            original_height,
+        )
 
     # --------------------------------------------------
     # Internal
     # --------------------------------------------------
 
-    def _binarize(self, image: np.ndarray) -> np.ndarray:
-        """
-        Produce a binary image where ink strokes are white
-        (foreground) on a black background, with nearby
-        strokes merged into a single connected blob so that
-        an entire signature is captured as one contour.
-        """
-
-        gray = image
-
-        if len(image.shape) == 3:
-            gray = self.preprocessor.grayscale(image)
-
-        blurred = cv2.GaussianBlur(gray, (3, 3), 0)
-
-        _, binary = cv2.threshold(
-            blurred,
-            0,
-            255,
-            cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU,
-        )
-
-        #
-        # Wide horizontal kernel: joins individual pen
-        # strokes/letters of a signature into one blob
-        # without merging unrelated page elements.
-        #
-        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (25, 5))
-
-        merged = cv2.morphologyEx(
-            binary,
-            cv2.MORPH_CLOSE,
-            kernel,
-            iterations=2,
-        )
-
-        return merged
-
-    def _select_best(
+    def _filter_signature_detections(
         self,
-        candidates: list[Detection],
-        image_height: int,
-    ) -> Detection:
+        detections: list[Detection],
+    ) -> list[Detection]:
         """
-        Select the signature candidate.
-
-        A signature is virtually always the LAST handwritten
-        field on a form - below the name, ID, and other
-        fields - so the bottom-most valid candidate is a far
-        more reliable signal than the largest one. Area-based
-        scoring was previously choosing long lines of cursive
-        prose (e.g. a name field) over the actual, often
-        shorter, signature scribble simply because they
-        covered more pixels.
+        Keep only signature detections.
         """
 
-        top_cutoff = image_height * self.top_margin_ratio
-        bottom_cutoff = image_height * (1 - self.bottom_margin_ratio)
-
-        in_bounds = [
+        return [
             detection
-            for detection in candidates
-            if top_cutoff <= detection.center[1] <= bottom_cutoff
+            for detection in detections
+            if detection.class_name.lower() in self.SIGNATURE_CLASSES
         ]
 
-        pool = in_bounds if in_bounds else candidates
+    def _rescale_bbox(
+        self,
+        bbox: tuple[int, int, int, int],
+        proc_width: int,
+        proc_height: int,
+        original_width: int,
+        original_height: int,
+    ) -> tuple[int, int, int, int]:
+        """
+        Convert the detection from the preprocessed image
+        back into the original image coordinate space.
+        """
 
-        #
-        # Bottom-most center_y wins; ties broken by area so
-        # a larger blob is preferred among near-identical
-        # vertical positions.
-        #
-        return max(
-            pool,
-            key=lambda detection: (detection.center[1], detection.area),
+        scale_x = original_width / proc_width
+        scale_y = original_height / proc_height
+
+        x, y, w, h = bbox
+
+        return (
+            int(x * scale_x),
+            int(y * scale_y),
+            int(w * scale_x),
+            int(h * scale_y),
         )

@@ -149,7 +149,9 @@ class Config:
         # --------------------------------------------------
         # Vision
         # --------------------------------------------------
-
+        
+        self.yolo_model = "best.pt"
+        
         self.max_processing_dimension = 1600
 
         self.yolo_confidence = 0.35
@@ -245,9 +247,38 @@ class Config:
         # haarcascade.xml). Background removal no longer
         # needs a model file - see core/remover.py.
         #
+        print("CONFIG FILE:", __file__)
         self.models_dir = Path(
             self.settings.get("models_dir", str(self.config_dir / "models"))
         )
+        
+        # --------------------------------------------------
+        # Development override
+        # --------------------------------------------------
+
+        project_root = Path(__file__).resolve().parent
+
+        development_models = project_root / "models"
+        print("PROJECT ROOT:", project_root)
+        print("DEV MODELS:", development_models)
+        print("EXISTS:", development_models.exists())
+
+        logger = __import__("logging").getLogger(__name__)
+
+        print(f"config.py = {Path(__file__).resolve()}")
+        print(f"project_root = {project_root}")
+        print(f"development_models = {development_models}")
+        print(f"exists = {development_models.exists()}")
+        print("=" * 60)
+        print("models_dir =", self.models_dir)
+        print("=" * 60)
+
+
+        if development_models.exists():
+
+            self.models_dir = development_models
+    
+    
 
         for directory in (
             self.photo_output_dir,

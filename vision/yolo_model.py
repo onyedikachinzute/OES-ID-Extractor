@@ -26,6 +26,7 @@ logic.
 from __future__ import annotations
 
 from pathlib import Path
+from ultralytics import YOLO
 
 from models.detection import Detection
 
@@ -89,8 +90,7 @@ class YOLOModel:
 
             model_path = (
                 Path(config.models_dir)
-                / "yolo.pt"
-            )
+                / config.yolo_model            )
 
             if not model_path.exists():
 
@@ -165,6 +165,8 @@ class YOLOModel:
         result = self.model.predict(
             source=image,
             conf=self.confidence,
+            imgsz=960,
+            device=0,
             verbose=False,
         )[0]
 
@@ -222,6 +224,7 @@ class YOLOModel:
         results = self.model.predict(
             source=images,
             conf=self.confidence,
+            device=0,
             verbose=False,
         )
 
