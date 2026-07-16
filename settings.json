@@ -16,12 +16,17 @@
     ],
     "image": {
         "dpi": 300,
-        "photo_padding": 20,
+        "photo_padding_top_ratio": 0.15,
+        "photo_padding_bottom_ratio": 0.70,
+        "photo_padding_side_ratio": 0.30,
         "signature_padding": 10,
         "sharpen": true,
         "clahe": true,
         "denoise": true,
-        "upscale_small_crops": true
+        "upscale_small_crops": true,
+        "standardize_photo_canvas": true,
+        "standard_photo_width": 600,
+        "standard_photo_height": 800
     },
     "ocr": {
         "enabled": true,

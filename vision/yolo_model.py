@@ -26,7 +26,6 @@ logic.
 from __future__ import annotations
 
 from pathlib import Path
-from ultralytics import YOLO
 
 from models.detection import Detection
 
@@ -36,6 +35,13 @@ from config import config
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
+
+try:
+    from ultralytics import YOLO
+    _ULTRALYTICS_AVAILABLE = True
+except ImportError:
+    YOLO = None
+    _ULTRALYTICS_AVAILABLE = False
 
 #
 # ultralytics (and its torch dependency) is a large,
