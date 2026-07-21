@@ -68,15 +68,23 @@ class YOLOModel:
     Singleton wrapper around a YOLO model.
     """
 
-    _model: YOLO | None = None
+    _models: dict[str, YOLO] = {}
 
-    _load_attempted: bool = False
+    _load_attempted: set[str] = set()
 
-    def __init__(self):
+    def __init__(
+        self,
+        model_name: str | None = None,
+        ):
+        
+        if model_name is None:
+            model_name = config.yolo_model
+        
+        self.model_name = model_name
 
-        if not YOLOModel._load_attempted:
+        if self.model_name not in YOLOModel._load_attempted:
 
-            YOLOModel._load_attempted = True
+            YOLOModel._load_attempted.add(self.model_name)
 
             if not _ULTRALYTICS_AVAILABLE:
 
@@ -96,7 +104,8 @@ class YOLOModel:
 
             model_path = (
                 Path(config.models_dir)
-                / config.yolo_model            )
+                / self.model_name
+            )
 
             if not model_path.exists():
 
@@ -119,11 +128,15 @@ class YOLOModel:
 
                 logger.info("Loading YOLO model...")
 
-                YOLOModel._model = YOLO(str(model_path))
+                YOLOModel._models[self.model_name] = YOLO(
+                    str(model_path)
+                )
 
                 logger.info("YOLO model loaded successfully.")
 
-        self.model = YOLOModel._model
+        self.model = YOLOModel._models.get(
+            self.model_name
+        )
 
         #
         # Detection confidence.
@@ -282,13 +295,16 @@ class YOLOModel:
     @classmethod
     def unload(cls) -> None:
         """
-        Release the shared model.
+        Release all loaded YOLO models.
         """
 
-        if cls._model is not None:
+        if not cls._models:
+            return
 
-            logger.info(
-                "Unloading YOLO model."
-            )
+        logger.info(
+            "Unloading YOLO models."
+        )
 
-            cls._model = None
+        cls._models.clear()
+
+        cls._load_attempted.clear()

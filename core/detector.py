@@ -31,7 +31,7 @@ from pdf.renderer import PDFRenderer
 
 from vision.photo_detector import PhotoDetector
 from vision.signature_detector import SignatureDetector
-
+from vision.name_detector import NameDetector
 from utils.file import load_image
 from utils.logger import get_logger
 
@@ -50,6 +50,8 @@ class Detector:
         self.photo_detector = PhotoDetector()
 
         self.signature_detector = SignatureDetector()
+        
+        self.name_detector = NameDetector()
 
     # ------------------------------------------------------
     # Public API
@@ -115,6 +117,18 @@ class Detector:
             )
         )
         print("SIGNATURE BBOX:", document.signature_bbox)
+        
+        #
+        # Detect name
+        #
+        
+        document.name_bbox = (
+            self.name_detector.detect(
+                document.source_image
+            )
+        )
+        
+        print("NAME BBOX:", document.name_bbox)
 
         logger.info(
             "Detection complete for '%s'.",

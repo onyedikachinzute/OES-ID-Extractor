@@ -80,12 +80,16 @@ class Document:
     photo_bbox: tuple[int, int, int, int] | None = None
 
     signature_bbox: tuple[int, int, int, int] | None = None
-
+    
+    name_bbox: tuple[int, int, int, int] | None = None
+    
     source_image: Any = None
 
     cropped_photo: Any = None
 
     cropped_signature: Any = None
+    
+    cropped_name: Any = None
 
     photo_output_path: Path | None = None
 

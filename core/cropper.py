@@ -71,6 +71,11 @@ class Cropper:
             "signature_padding",
             10,
         )
+        
+        self.name_padding = image_cfg.get(
+            "name_padding",
+            10
+        )
 
     # ------------------------------------------------------
     # Public API
@@ -124,6 +129,31 @@ class Cropper:
 
             logger.warning(
                 "No signature detected."
+            )
+
+        if document.name_bbox is not None:
+
+            document.cropped_name = self._crop(
+                image,
+                document.name_bbox,
+                self.name_padding,
+            )
+            import cv2
+            from pathlib import Path
+
+            debug_dir = Path("debug_names")
+            debug_dir.mkdir(exist_ok=True)
+
+            cv2.imwrite(
+                str(debug_dir / f"{document.stem}.png"),
+                document.cropped_name,
+            )
+            print(document.cropped_name.shape)
+
+        else:
+
+            logger.warning(
+                "No name detected."
             )
 
         return document

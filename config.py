@@ -171,6 +171,7 @@ class Config:
         
         self.yolo_model = "detector.pt"
         self.segment_model = "segment.pt"
+        self.name_detector_model = "name_detector.pt"
         
         self.max_processing_dimension = 1600
 
