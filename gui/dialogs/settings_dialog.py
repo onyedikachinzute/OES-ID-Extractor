@@ -22,7 +22,7 @@ from tkinter import filedialog
 
 import customtkinter as ctk
 
-from config import config
+from config import config, ProcessingMode
 
 
 class SettingsDialog(ctk.CTkToplevel):
@@ -52,6 +52,22 @@ class SettingsDialog(ctk.CTkToplevel):
         self.minsize(width, height)
         self.resizable(True, True)
 
+        #
+        # Processing Mode
+        #
+
+        self.processing_mode_label = ctk.CTkLabel(
+            self,
+            text="Processing Mode",
+        )
+
+        self.processing_mode_menu = ctk.CTkOptionMenu(
+            self,
+            values=[
+                "Full Processing",
+                "Crop Only (Debug)",
+            ],
+        )
     # --------------------------------------------------
     # Widgets
     # --------------------------------------------------
@@ -116,6 +132,23 @@ class SettingsDialog(ctk.CTkToplevel):
                 "Dark",
             ],
         )
+        
+        self.processing_mode_label = ctk.CTkLabel(
+            self,
+            text="Processing Mode",
+        )
+        
+        self.processing_modes = {
+            "Full Processing": ProcessingMode.FULL,
+            "Crop Only (Debug)": ProcessingMode.CROP_ONLY,
+        }
+        
+        self.processing_mode_menu = ctk.CTkOptionMenu(
+            self,
+            values=list(self.processing_modes.keys()),
+            command=self._processing_mode_changed
+        )
+
 
         #
         # DPI
@@ -218,6 +251,35 @@ class SettingsDialog(ctk.CTkToplevel):
             self.signature_dir_entry.insert(0, folder)
 
     # --------------------------------------------------
+    # Processing Mode
+    # --------------------------------------------------
+
+    def _processing_mode_changed(self, choice: str):
+        """
+        Enable or disable controls depending on the
+        selected processing mode.
+        """
+
+        crop_only = (
+            self.processing_modes[choice]
+            == ProcessingMode.CROP_ONLY
+        )
+
+        state = "disabled" if crop_only else "normal"
+
+        self.bg_switch.configure(
+            state=state
+        )
+
+        self.sharpen_switch.configure(
+            state=state
+        )
+        
+        self.clahe_switch.configure(
+            state=state
+        )
+        
+    # --------------------------------------------------
     # Layout
     # --------------------------------------------------
 
@@ -250,6 +312,9 @@ class SettingsDialog(ctk.CTkToplevel):
         widgets = [
 
             (self.theme_label, self.theme_menu),
+            
+            (self.processing_mode_label,
+             self.processing_mode_menu),
 
             (self.dpi_label, self.dpi_entry),
 
@@ -366,6 +431,18 @@ class SettingsDialog(ctk.CTkToplevel):
         self.theme_menu.set(
             config.gui_settings["theme"].title()
         )
+        
+        for text, mode in self.processing_modes.items():
+
+            if mode == config.processing_mode:
+
+                self.processing_mode_menu.set(text)
+
+                break
+        
+        self._processing_mode_changed(
+            self.processing_mode_menu.get()
+        )
 
         self.dpi_entry.insert(
             0,
@@ -434,6 +511,14 @@ class SettingsDialog(ctk.CTkToplevel):
 
         import customtkinter as ctk
         ctk.set_appearance_mode(self.theme_menu.get())
+        
+        config.processing_mode = self.processing_modes[
+            self.processing_mode_menu.get()
+        ]
+
+        config.settings["processing_mode"] = (
+            config.processing_mode.value
+        )
 
         config.settings["image"]["dpi"] = \
             int(self.dpi_entry.get())

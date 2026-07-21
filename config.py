@@ -51,7 +51,7 @@ import os
 import sys
 from pathlib import Path
 from typing import Any
-
+from enum import Enum
 APP_DIR_NAME = "OES ID Extractor"
 
 
@@ -123,6 +123,9 @@ def _default_settings() -> dict:
         "background_removal": {
             "enabled": True,
         },
+        
+        "processing_mode": "full",  # Options: "full", "crop_only"
+        
         "gui": {
             "theme": "dark",
             "window_width": 1200,
@@ -130,6 +133,13 @@ def _default_settings() -> dict:
         },
     }
 
+class ProcessingMode(Enum):
+    """
+    Enum for processing modes.
+    """
+
+    FULL = "full"
+    CROP_ONLY = "crop_only"
 
 class Config:
     """
@@ -146,6 +156,9 @@ class Config:
 
         self.settings = self._load_or_create_settings()
 
+        self.processing_mode = ProcessingMode(
+            self.settings.get("processing_mode", "full")
+        )
         # --------------------------------------------------
         # Vision
         # --------------------------------------------------
@@ -354,3 +367,4 @@ class Config:
 
 
 config = Config()
+

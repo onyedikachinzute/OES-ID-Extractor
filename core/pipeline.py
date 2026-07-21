@@ -35,7 +35,7 @@ from core.remover import BackgroundRemover
 from core.enhancer import Enhancer
 from core.namer import Namer
 from core.exporter import Exporter
-
+from config import config, ProcessingMode
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -95,14 +95,11 @@ class ProcessingPipeline:
         #
         # Stage 3
         #
+        if config.processing_mode == ProcessingMode.FULL:
+            
+            self.remover.process(document)
 
-        self.remover.process(document)
-
-        #
-        # Stage 4
-        #
-
-        self.enhancer.process(document)
+            self.enhancer.process(document)
 
         #
         # Stage 5
