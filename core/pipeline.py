@@ -79,6 +79,7 @@ class ProcessingPipeline:
         )
 
         document.status = "Processing"
+        
 
         #
         # Stage 1
@@ -105,16 +106,50 @@ class ProcessingPipeline:
         )
         
         if config.processing_mode == ProcessingMode.FULL:
-            
-            self.remover.process(document)
 
-            self.enhancer.process(document)
+            #
+            # Background Removal
+            #
 
+            if config.background_settings["enabled"]:
+
+                self.remover.process(document)
+
+            else:
+
+                document.photo = document.cropped_photo
+                document.signature = document.cropped_signature
+
+            #
+            # Image Enhancement
+            #
+
+            image = config.image_settings
+
+            enhancement_enabled = any(
+                image.get(setting, True)
+                for setting in (
+                    "denoise",
+                    "clahe",
+                    "sharpen",
+                    "upscale_small_crops",
+                    "standardize_photo_canvas",
+                )
+            )
+
+            if enhancement_enabled:
+                self.enhancer.process(document)
         #
         # Stage 5
         #
 
-        self.namer.process(document)
+        if config.ocr_settings["enabled"]:
+
+            self.namer.process(document)
+
+        else:
+
+            document.extracted_name = document.stem
 
         #
         # Stage 6

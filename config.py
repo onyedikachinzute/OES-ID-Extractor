@@ -112,11 +112,18 @@ def _default_settings() -> dict:
             "dpi": 300,
             "photo_padding": 20,
             "signature_padding": 10,
+            
+            
             "sharpen": True,
             "clahe": True,
             "denoise": True,
             "upscale_small_crops": True,
+            
+            "standardize_photo_canvas": True,
+            "standard_photo_width": 600,
+            "standard_photo_height": 800,
         },
+        
         "ocr": {
             "enabled": True,
             "language": "eng",
@@ -191,7 +198,19 @@ class Config:
             # without discarding the user's existing choices.
             defaults = _default_settings()
 
-            defaults.update(settings)
+            for key, value in settings.items():
+
+                if (
+                    key in defaults
+                    and isinstance(defaults[key], dict)
+                    and isinstance(value, dict)
+                ):
+                    defaults[key].update(value)
+
+                else:
+                    defaults[key] = value
+                    
+            self._write_settings(defaults)
 
             return defaults
 

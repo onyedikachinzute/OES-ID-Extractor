@@ -57,14 +57,7 @@ class Enhancer:
 
         image_cfg = config.image_settings
 
-        self.enable_clahe = image_cfg.get("clahe", True)
-
-        self.enable_sharpen = image_cfg.get("sharpen", True)
-
-        self.enable_denoise = image_cfg.get("denoise", True)
-
-        self.enable_upscale = image_cfg.get("upscale_small_crops", True)
-
+        
         #
         # Every exported photo is fit onto a canvas of this
         # exact size/aspect ratio, so the whole batch looks
@@ -73,9 +66,7 @@ class Enhancer:
         # detection box was. 3:4 is a standard, widely
         # recognized ID/passport photo proportion.
         #
-        self.standardize_photo_canvas = image_cfg.get(
-            "standardize_photo_canvas", True,
-        )
+    
 
         self.standard_photo_width = image_cfg.get(
             "standard_photo_width", 600,
@@ -93,7 +84,22 @@ class Enhancer:
         """
         Enhance the extracted images.
         """
+        image = config.image_settings
 
+        enhancement_enabled = any([
+            image["denoise"],
+            image["clahe"],
+            image["sharpen"],
+            image["upscale_small_crops"],
+            image["standardize_photo_canvas"],
+        ])
+
+        if not enhancement_enabled:
+
+            logger.info("Image enhancement disabled.")
+
+            return document
+        
         logger.info("Enhancing '%s'.", document.filename)
 
         if document.photo is not None:
@@ -103,7 +109,10 @@ class Enhancer:
                 min_dimension=self.PHOTO_MIN_DIMENSION,
             )
 
-            if self.standardize_photo_canvas:
+            if config.image_settings.get(
+                "standardize_photo_canvas",
+                True
+            ):
 
                 document.photo = self._fit_to_standard_canvas(
                     document.photo,
@@ -146,7 +155,7 @@ class Enhancer:
         else:
             rgb = image
 
-        if self.enable_denoise:
+        if config.image_settings["denoise"]:
             #
             # Denoise/deblock BEFORE upscaling, not after.
             # JPEG block artifacts (common in this dataset's
@@ -158,13 +167,13 @@ class Enhancer:
             #
             rgb = self._denoise(rgb, is_signature)
 
-        if self.enable_upscale:
+        if config.image_settings["upscale_small_crops"]:
             rgb, alpha = self._upscale_if_small(rgb, alpha, min_dimension)
 
-        if self.enable_clahe:
+        if config.image_settings["clahe"]:
             rgb = self._apply_clahe(rgb)
 
-        if self.enable_sharpen:
+        if config.image_settings["sharpen"]:
             rgb = self._unsharp_mask(rgb, is_signature)
 
         if has_alpha:

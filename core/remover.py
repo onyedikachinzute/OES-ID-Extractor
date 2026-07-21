@@ -60,6 +60,7 @@ import numpy as np
 
 from models.document import Document
 from utils.logger import get_logger
+from config import config
 
 logger = get_logger(__name__)
 
@@ -77,15 +78,31 @@ class BackgroundRemover:
     # Public API
     # ------------------------------------------------------
 
+    
     def process(self, document: Document) -> Document:
         """
         Remove backgrounds from all extracted images.
         """
+        
+        if not config.background_settings["enabled"]:
+
+            logger.info("Background removal disabled.")
+
+            document.photo = document.cropped_photo
+            document.signature = document.cropped_signature
+
+            return document
 
         logger.info(
             "Removing backgrounds from '%s'.",
             document.filename,
         )
+        
+        if not config.background_settings["enabled"]:
+            
+            logger.info(
+                "Background removal disabled."
+            )
 
         document.photo = self._process_photo(document.cropped_photo)
 
