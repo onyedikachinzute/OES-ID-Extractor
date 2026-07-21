@@ -98,6 +98,7 @@ def _default_settings() -> dict:
 
     return {
         "first_run": True,
+        "processing_mode": "full",
         "photo_output_dir": str(docs / "Photos"),
         "signature_output_dir": str(docs / "Signatures"),
         "temp_dir": str(_user_config_dir() / "temp"),
@@ -123,9 +124,7 @@ def _default_settings() -> dict:
         "background_removal": {
             "enabled": True,
         },
-        
-        "processing_mode": "full",  # Options: "full", "crop_only"
-        
+                
         "gui": {
             "theme": "dark",
             "window_width": 1200,

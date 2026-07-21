@@ -52,22 +52,7 @@ class SettingsDialog(ctk.CTkToplevel):
         self.minsize(width, height)
         self.resizable(True, True)
 
-        #
-        # Processing Mode
-        #
 
-        self.processing_mode_label = ctk.CTkLabel(
-            self,
-            text="Processing Mode",
-        )
-
-        self.processing_mode_menu = ctk.CTkOptionMenu(
-            self,
-            values=[
-                "Full Processing",
-                "Crop Only (Debug)",
-            ],
-        )
     # --------------------------------------------------
     # Widgets
     # --------------------------------------------------
@@ -544,6 +529,8 @@ class SettingsDialog(ctk.CTkToplevel):
         config.settings["background_removal"]["enabled"] = \
             bool(self.bg_switch.get())
 
+        print("Before save:")
+        print(config.settings)
         config.save()
 
         self.destroy()

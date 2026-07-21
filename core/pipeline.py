@@ -91,10 +91,19 @@ class ProcessingPipeline:
         #
 
         self.cropper.process(document)
+        if config.processing_mode == ProcessingMode.CROP_ONLY:
+
+            document.photo = document.cropped_photo
+            document.signature = document.cropped_signature
 
         #
         # Stage 3
         #
+        logger.info(
+            "Processing mode = %s",
+            config.processing_mode,
+        )
+        
         if config.processing_mode == ProcessingMode.FULL:
             
             self.remover.process(document)

@@ -53,6 +53,7 @@ class Exporter:
             parents=True,
             exist_ok=True,
         )
+        
 
     # ------------------------------------------------------
     # Public API
@@ -70,6 +71,8 @@ class Exporter:
             "Exporting '%s'.",
             document.filename,
         )
+        print(document.cropped_photo is None)
+        print(document.cropped_signature is None)
 
         if not document.extracted_name:
 

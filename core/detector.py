@@ -103,6 +103,7 @@ class Detector:
                 document.source_image
             )
         )
+        print("PHOTO BBOX:", document.photo_bbox)
 
         #
         # Detect signature
@@ -113,6 +114,7 @@ class Detector:
                 document.source_image
             )
         )
+        print("SIGNATURE BBOX:", document.signature_bbox)
 
         logger.info(
             "Detection complete for '%s'.",
