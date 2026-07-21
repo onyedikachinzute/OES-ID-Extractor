@@ -169,7 +169,8 @@ class Config:
         # Vision
         # --------------------------------------------------
         
-        self.yolo_model = "best.pt"
+        self.yolo_model = "detector.pt"
+        self.segment_model = "segment.pt"
         
         self.max_processing_dimension = 1600
 
@@ -180,6 +181,10 @@ class Config:
         self.signature_min_aspect_ratio = 2.0
 
         self.signature_max_aspect_ratio = 12.0
+        
+        self.segmentation_confidence = 0.35
+        self.segmentation_imgsz = 960
+        self.device = 0
 
         self._initialize_paths()
 
