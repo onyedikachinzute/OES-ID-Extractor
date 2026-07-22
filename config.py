@@ -172,8 +172,14 @@ class Config:
         self.yolo_model = "detector.pt"
         self.segment_model = "segment.pt"
         self.name_detector_model = "name_detector.pt"
+        self.handwriting_model = ""
         
         self.max_processing_dimension = 1600
+        
+        self.name_padding_left = 0.25
+        self.name_padding_right = 0.40
+        self.name_padding_top = 0.45
+        self.name_padding_bottom = 0.45
 
         self.yolo_confidence = 0.35
 

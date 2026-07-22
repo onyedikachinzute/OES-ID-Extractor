@@ -1,37 +1,32 @@
 """
 ===========================================================
 OES ID Extractor
-Namer
+Personnel Namer
 
 Author:
     Onyedikachi Nzute
 
 Description
 -----------
-Determines the final filename for extracted personnel
-assets.
+Extracts the personnel name from a document and determines
+the final export filename.
 
 Responsibilities
 ----------------
-• Obtain personnel name from OCR
-• Validate extracted name
-• Sanitize invalid filename characters
-• Generate fallback names
-• Ensure unique export names
-
-This module performs no OCR.
+• Obtain the cropped handwritten name
+• Run handwriting OCR
+• Clean OCR output
+• Determine the final filename
 ===========================================================
 """
 
 from __future__ import annotations
 
-import re
 from pathlib import Path
 
 from models.document import Document
-
-from ocr.tesseract import TesseractOCR
-from ocr.parser import OCRParser
+from ocr.handwriting import HandwritingOCR
+from ocr.text_cleaner import OCRTextCleaner
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -39,29 +34,25 @@ logger = get_logger(__name__)
 
 class Namer:
     """
-    Determines the final export filename.
+    Determines the filename for exported assets.
     """
-
-    INVALID_CHARS = re.compile(r'[<>:"/\\|?*\x00-\x1F]')
 
     def __init__(self):
 
-        self.ocr = TesseractOCR()
+        self.ocr = HandwritingOCR()
 
-        self.parser = OCRParser()
+        self.cleaner = OCRTextCleaner()
 
-        self._used_names: set[str] = set()
-
-    # ------------------------------------------------------
+    # --------------------------------------------------
     # Public API
-    # ------------------------------------------------------
+    # --------------------------------------------------
 
     def process(
         self,
         document: Document,
-    ) -> Document:
+    ) -> None:
         """
-        Determine the personnel name.
+        Determine the document's export filename.
         """
 
         logger.info(
@@ -69,91 +60,142 @@ class Namer:
             document.filename,
         )
 
-        raw_text = self.ocr.extract_text(document)
+        #
+        # Name crop produced by Cropper.
+        #
 
-        candidate = self.parser.parse_name(raw_text)
+        crop = document.name_crop
 
-        if not candidate:
-
-            candidate = document.stem
+        if crop is None:
 
             logger.warning(
-                "OCR could not determine a name. "
-                "Using filename '%s'.",
-                candidate,
+                "No handwritten name crop available."
             )
 
-        candidate = self._sanitize(candidate)
+            document.personnel_name = None
 
-        candidate = self._unique(candidate)
+            document.output_name = (
+                Path(document.filename).stem
+            )
 
-        document.extracted_name = candidate
+            return
+
+        #
+        # OCR
+        #
+
+        result = self.ocr.read(crop)
+        
+        if result is None:
+
+            logger.warning(
+                "Handwriting OCR failed."
+            )
+
+            document.personnel_name = None
+
+            document.output_name = (
+                Path(document.filename).stem
+            )
+
+            return
+
+        if result is None:
+
+            logger.warning(
+                "Handwriting OCR failed."
+            )
+
+            document.personnel_name = None
+
+            document.output_name = (
+                Path(document.filename).stem
+            )
+
+            return
+
+        #
+        # Clean text.
+        #
+
+        cleaned = self.cleaner.clean(
+            result.text,
+        )
+        
+        logger.info(
+            "Cleaned OCR output: '%s'",
+            cleaned,
+        )
+
+        if cleaned is None:
+
+            logger.warning(
+                "OCR text could not be cleaned."
+            )
+
+            document.personnel_name = None
+
+            document.output_name = (
+                Path(document.filename).stem
+            )
+
+            return
+
+        #
+        # Success.
+        #
+
+        document.raw_ocr_text = result.text
+
+        document.personnel_name = cleaned
+
+        document.ocr_confidence = result.confidence
+
+        document.ocr_variant = result.variant
+
+        filename = self.cleaner.filename(
+            cleaned,
+        )
+
+        if filename is None:
+
+            filename = Path(document.filename).stem
+
+        document.output_name = filename
+
+        logger.info(
+            "Personnel name: %s",
+            document.personnel_name,
+        )
+
+        logger.info(
+            "OCR confidence: %.3f",
+            result.confidence,
+        )
+
+        logger.info(
+            "OCR variant: %s",
+            result.variant,
+        )
 
         logger.info(
             "Final filename: %s",
-            candidate,
+            document.output_name,
         )
-
-        return document
-
-    # ------------------------------------------------------
-    # Internal
-    # ------------------------------------------------------
-
-    def _sanitize(
-        self,
-        name: str,
-    ) -> str:
-        """
-        Remove invalid filename characters.
-        """
-
-        name = self.INVALID_CHARS.sub("", name)
-
-        name = " ".join(name.split())
-
-        name = name.strip(" .")
-
-        if not name:
-
-            return "Unknown"
-
-        return name
-
-    def _unique(
-        self,
-        name: str,
-    ) -> str:
-        """
-        Ensure the generated filename is unique
-        within the current processing session.
-        """
-
-        if name not in self._used_names:
-
-            self._used_names.add(name)
-
-            return name
-
-        counter = 2
-
-        while True:
-
-            candidate = f"{name}_{counter}"
-
-            if candidate not in self._used_names:
-
-                self._used_names.add(candidate)
-
-                return candidate
-
-            counter += 1
-
+        
+        logger.info(
+            "Raw OCR output: '%s'",
+            result.text,
+        )
+        
     def reset(self) -> None:
         """
-        Clear remembered names.
+        Reset any cached state.
 
-        Call before beginning a new processing batch.
+        Currently Namer is stateless, but this method exists
+        for compatibility with the processing pipeline.
         """
 
-        self._used_names.clear()
+        logger.debug(
+            "Resetting Namer."
+        )

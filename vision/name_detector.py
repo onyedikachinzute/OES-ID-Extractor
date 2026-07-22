@@ -119,11 +119,17 @@ class NameDetector:
             "Handwritten name detected via YOLO (confidence %.2f).",
             best.confidence,
         )
-
-        return self._rescale_bbox(
+        
+        bbox = self._rescale_bbox(
             best.bbox,
             proc_width,
             proc_height,
+            original_width,
+            original_height,
+        )
+
+        return self._expand_bbox(
+            bbox,
             original_width,
             original_height,
         )
@@ -163,3 +169,30 @@ class NameDetector:
             int(w * scale_x),
             int(h * scale_y),
         )
+        
+    def _expand_bbox(
+        self,
+        bbox: tuple[int, int, int, int],
+        image_width: int,
+        image_height: int,
+    ) -> tuple[int, int, int, int]:
+
+        x, y, w, h = bbox
+        left = int(w * config.name_padding_left)
+        right = int(w * config.name_padding_right)
+        top = int(h * config.name_padding_top)
+        bottom = int(h * config.name_padding_bottom)
+
+        x = max(0, x - left)
+        y = max(0, y - top)
+
+        new_w = w + left + right
+        new_h = h + top + bottom
+
+        if x + new_w > image_width:
+            new_w = image_width - x
+
+        if y + new_h > image_height:
+            new_h = image_height - y
+
+        return x, y, new_w, new_h

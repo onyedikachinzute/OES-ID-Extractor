@@ -133,7 +133,7 @@ class Cropper:
 
         if document.name_bbox is not None:
 
-            document.cropped_name = self._crop(
+            document.name_crop = self._crop(
                 image,
                 document.name_bbox,
                 self.name_padding,
@@ -146,9 +146,9 @@ class Cropper:
 
             cv2.imwrite(
                 str(debug_dir / f"{document.stem}.png"),
-                document.cropped_name,
+                document.name_crop,
             )
-            print(document.cropped_name.shape)
+            print(document.name_crop.shape)
 
         else:
 
@@ -227,7 +227,5 @@ class Cropper:
         y2 = min(height, y + h + padding)
 
         crop = image[y1:y2, x1:x2]
-        
-        cv2.imwrite("debug_raw_crop.png", crop)
         
         return crop.copy()

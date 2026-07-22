@@ -39,5 +39,9 @@
         "theme": "dark",
         "window_width": 1200,
         "window_height": 700
-    }
+    },
+    "name_detection": {
+        "padding_x": 0.20,
+        "padding_y": 0.60
+}
 }

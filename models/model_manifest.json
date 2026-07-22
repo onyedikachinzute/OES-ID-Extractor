@@ -1,0 +1,30 @@
+{
+    "manifest_version": "1.0",
+
+    "models":
+    {
+        "detector":
+        {
+            "filename": "detector.pt",
+            "type": "file",
+            "version": "1.0.0",
+            "url": "https://raw.githubusercontent.com/onyedikachinzute/OES-ID-Extractor/main/models/detector.pt"        
+        },
+
+        "segmenter":
+        {
+            "filename": "segment.pt",
+            "type": "file",
+            "version": "1.0.0",
+            "url": "https://raw.githubusercontent.com/onyedikachinzute/OES-ID-Extractor/main/models/segment.pt"  
+        },
+
+        "name_detector":
+        {
+            "filename": "name_detector.pt",
+            "type": "file",
+            "version": "1.0.0",
+            "url": "https://raw.githubusercontent.com/onyedikachinzute/OES-ID-Extractor/main/models/name_detector.pt"
+        }
+    }
+}

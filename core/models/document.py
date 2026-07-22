@@ -89,11 +89,22 @@ class Document:
 
     cropped_signature: Any = None
     
-    cropped_name: Any = None
+    name_crop: Any = None
+
 
     photo_output_path: Path | None = None
 
     signature_output_path: Path | None = None
+        
+    personnel_name: Any = None
+    
+    output_name: Any = None
+    
+    raw_ocr_text: str | None = None
+
+    ocr_confidence: float | None = None
+
+    ocr_variant: str | None = None
 
     # ------------------------------------------------------
     # Processing Metadata
